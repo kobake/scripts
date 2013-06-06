@@ -1,0 +1,46 @@
+#!/usr/bin/php
+<?php
+/*
+	Usage: rename_to_utf8
+	Requires: php 5.x
+*/
+$ok = 0;
+$ng = 0;
+$skip = 0;
+$dir = opendir('.');
+while($file = readdir($dir)){
+	if($file[0] === '.')continue;
+	$utf8_file = mb_convert_encoding($file, 'utf8', 'utf8,sjis');
+	#$utf8_file = exec("echo " . escapeshellarg($file) . " | nkf -w");
+	if($file !== $utf8_file){
+		print "Rename: $file -> $utf8_file\n";
+		while(1){
+			$input = readline("y or n> ");
+			$input = strtolower($input);
+			if($input === 'y'){
+				$b = rename($file, $utf8_file);
+				if($b){
+					$ok++;
+					print "ok.\n";
+				}
+				else{
+					$ng++;
+					print "error.\n";
+				}
+			}
+			elseif($input === 'n'){
+				$skip++;
+				break;
+			}
+			else{
+				continue;
+			}
+		}
+	}
+}
+closedir($dir);
+print "----\n";
+print "ok count:$ok\n";
+print "error count:$ng\n";
+print "skip count:$skip\n";
+?>
