@@ -27,6 +27,7 @@ while($file = readdir($dir)){
 					$ng++;
 					print "error.\n";
 				}
+				break;
 			}
 			elseif($input === 'n'){
 				$skip++;
