@@ -31,6 +31,7 @@ while($file = readdir($dir)){
 			}
 			elseif($input === 'n'){
 				$skip++;
+				print "skip.\n";
 				break;
 			}
 			else{
