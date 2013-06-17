@@ -1,0 +1,51 @@
+#!/bin/sh
+
+# options
+while getopts vh OPT
+do
+  case $OPT in
+    "v" ) FLG_V="TRUE" ;;
+    "h" ) FLG_H="TRUE" ;;
+  esac
+done
+shift `expr $OPTIND - 1`
+
+# arguments check
+if [ $# -ne 2 -o "$FLG_H" = "TRUE" ]; then
+  echo "Usage: sleep_random [<Options>] <from sec> <to sec>"
+  echo "Options:"
+  echo "  -v  output verbosely."
+  echo "  -h  show help."
+  echo ""
+  exit 1
+fi
+
+# arguments assignment
+FROM=$1
+TO=$2
+if [ $FROM -gt $TO ]; then
+  TMP=$FROM
+  FROM=$TO
+  TO=$TMP
+  echo "----"
+fi
+RANGE=`expr $TO - $FROM`
+
+# calc random sec
+if [ "$RANGE" -ne "0" ]; then
+  SEC=`expr $FROM + $RANDOM % $RANGE`
+else
+  SEC=$FROM
+fi
+
+# into
+if [ "$FLG_V" = "TRUE" ]; then
+  echo " FROM: $FROM"
+  echo "   TO: $TO"
+  echo "RANGE: $RANGE"
+  echo "  SEC: $SEC"
+fi
+
+# sleep
+sleep $SEC
+
