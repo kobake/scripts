@@ -1,47 +1,108 @@
 #!/usr/bin/php
 <?php
 /*
-	Usage: rename_to_utf8
 	Requires: php 5.x
 */
+
+// 使い方
+function help(){
+	print <<<EOS
+Usage: rename_to_utf8 [option]
+Option:
+    -r       Scan files recursively.
+    -h (-?)  Show help
+
+
+EOS;
+}
+
+// 起動オプション
+global $opt_r;
+$opt_r = false;
+$opt_h = false;
+foreach($argv as $arg){
+	if($arg === '-r'){
+		$opt_r = true;
+	}
+	else if($arg === '-h' || $arg === '-?'){
+		$opt_h = true;
+	}
+}
+
+// ヘルプ表示
+if($opt_h){
+	help();
+	exit;
+}
+
+// グローバル結果
+global $ok, $ng, $skip;
 $ok = 0;
 $ng = 0;
 $skip = 0;
-$dir = opendir('.');
-while($file = readdir($dir)){
-	if($file[0] === '.')continue;
-	$utf8_file = mb_convert_encoding($file, 'utf8', 'utf8,sjis');
-	#$utf8_file = exec("echo " . escapeshellarg($file) . " | nkf -w");
-	if($file !== $utf8_file){
-		print "Rename: $file -> $utf8_file\n";
-		while(1){
-			$input = readline("y or n> ");
-			$input = strtolower($input);
-			if($input === 'y'){
-				$b = rename($file, $utf8_file);
-				if($b){
-					$ok++;
-					print "ok.\n";
+
+function myscan($dir){
+	global $opt_r;
+	global $ok, $ng, $skip;
+
+	$dirhandle = opendir($dir);
+	while($file = readdir($dirhandle)){
+		// Skip /.*/
+		if($file[0] === '.')continue;
+
+		// パス (※フルパスとは限らない。元が '.' から始まることもあるので)
+		$path = "$dir/$file";
+		print "...checking $path\n";
+
+		// 子
+		if($opt_r && is_dir($path)){
+			myscan($path);
+		}
+
+		// 自分自身
+		$utf8_file = mb_convert_encoding($file, 'utf8', 'utf8,sjis');
+		// $utf8_file = exec("echo " . escapeshellarg($file) . " | nkf -w");
+		if($file !== $utf8_file){
+			$newpath = "$dir/$utf8_file";
+			print "--------------------------\n";
+			print "Confirm to rename\n";
+			print "  OldPath: $path\n";
+			print "  NewPath: $newpath\n";
+			print "--------------------------\n";
+			while(1){
+				$input = readline("y or n> ");
+				$input = strtolower($input);
+				if($input === 'y'){
+					// リネーム実行
+					$b = rename($path, $newpath);
+					if($b){
+						$ok++;
+						print "ok.\n";
+					}
+					else{
+						$ng++;
+						print "error.\n";
+					}
+					break;
+				}
+				elseif($input === 'n'){
+					$skip++;
+					print "skip.\n";
+					break;
 				}
 				else{
-					$ng++;
-					print "error.\n";
+					continue;
 				}
-				break;
 			}
-			elseif($input === 'n'){
-				$skip++;
-				print "skip.\n";
-				break;
-			}
-			else{
-				continue;
-			}
+			print "\n";
 		}
 	}
+	closedir($dirhandle);
 }
-closedir($dir);
-print "----\n";
+
+myscan('.');
+
+print "\n----\n";
 print "ok count:$ok\n";
 print "error count:$ng\n";
 print "skip count:$skip\n";
