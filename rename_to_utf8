@@ -10,6 +10,7 @@ function help(){
 Usage: rename_to_utf8 [option]
 Option:
     -r       Scan files recursively.
+    -y       Answer yes for all questions.
     -h (-?)  Show help
 
 
@@ -18,11 +19,16 @@ EOS;
 
 // 起動オプション
 global $opt_r;
+global $opt_y;
 $opt_r = false;
+$opt_y = false;
 $opt_h = false;
 foreach($argv as $arg){
 	if($arg === '-r'){
 		$opt_r = true;
+	}
+	else if($arg === '-y'){
+		$opt_y = true;
 	}
 	else if($arg === '-h' || $arg === '-?'){
 		$opt_h = true;
@@ -43,6 +49,7 @@ $skip = 0;
 
 function myscan($dir){
 	global $opt_r;
+	global $opt_y;
 	global $ok, $ng, $skip;
 
 	$dirhandle = opendir($dir);
@@ -70,8 +77,13 @@ function myscan($dir){
 			print "  NewPath: $newpath\n";
 			print "--------------------------\n";
 			while(1){
-				$input = readline("y or n> ");
-				$input = strtolower($input);
+				if($opt_y){
+					$input = 'y';
+				}
+				else{
+					$input = readline("y or n> ");
+					$input = strtolower($input);
+				}
 				if($input === 'y'){
 					// リネーム実行
 					$b = rename($path, $newpath);
