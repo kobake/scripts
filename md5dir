@@ -1,0 +1,4 @@
+#!/bin/sh
+find . | env LC_ALL=C sort | md5sum -b
+(find . -type f -exec md5sum -b {} \; && find .) | env LC_ALL=C sort | md5sum -b
+
